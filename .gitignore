@@ -1,16 +1,11 @@
-# Build output
-/target/
-/logs/
-
-# Eclipse files
-/.classpath
-/.project
-/.settings/
-
-# Intellij files
-/*.iml
-/*.ipr
-/*.iws
-/.idea/
+target
+logs
+.classpath
+.project
+.settings
+*.iml
+*.ipr
+*.iws
+.idea
 projectFilesBackup*
-/overlays/
+overlays
