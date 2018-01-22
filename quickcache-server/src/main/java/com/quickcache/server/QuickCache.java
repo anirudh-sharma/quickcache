@@ -1,32 +1,38 @@
 package com.quickcache.server;
 
-import java.util.Properties;
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.quickcache.server.manager.ClientConnectionManager;
+import com.quickcache.server.manager.PersistenceManager;
 import com.quickcache.server.manager.StorageManager;
-import com.quickcache.server.storage.config.Configuration;
 
+@Component
 public class QuickCache {
 
-	private static Configuration configuration;
+	@Autowired
+	private StorageManager storageManager;
+	@Autowired
+	private PersistenceManager persistenceManager;
+	@Autowired
+	private ClientConnectionManager clientConnectionManager;
 
-	public static StorageManager storageManager;
-
-	private static ClientConnectionManager clientConnectionManager;
-
-	public static void init() {
-		Properties properties = new Properties();
-		try {
-			properties.load(QuickCache.class.getClassLoader().getResourceAsStream("quickcache.config"));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		configuration = new Configuration(properties);
-		storageManager = new StorageManager(configuration);
-		clientConnectionManager = new ClientConnectionManager(configuration);
+	public void setStorageManager(StorageManager storageManager) {
+		this.storageManager = storageManager;
 	}
 
-	public static void loadDummyData(){
+	public void setPersistenceManager(PersistenceManager persistenceManager) {
+		this.persistenceManager = persistenceManager;
+	}
+
+	public void setClientConnectionManager(ClientConnectionManager clientConnectionManager) {
+		this.clientConnectionManager = clientConnectionManager;
+	}
+
+	@PostConstruct
+	public void init() {
 		storageManager.setValue("foo1", "bar1");
 		storageManager.setValue("foo2", "bar2");
 		storageManager.setValue("foo3", "bar3");
@@ -38,18 +44,6 @@ public class QuickCache {
 		storageManager.setMapValue("map2", "mapkey1", "map2value1");
 		storageManager.setMapValue("map2", "mapkey2", "map2value2");
 		storageManager.setMapValue("map2", "mapkey3", "map2value3");
-
-//		System.out.println(storageManager.getValue("foo1"));
-//		System.out.println(storageManager.getValue("foo2"));
-//		System.out.println(storageManager.getValue("foo3"));
-//
-//		System.out.println(storageManager.getMapValue("map1", "mapkey1"));
-//		System.out.println(storageManager.getMapValue("map1", "mapkey2"));
-//		System.out.println(storageManager.getMapValue("map1", "mapkey3"));
-//
-//		System.out.println(storageManager.getMapValue("map2", "mapkey1"));
-//		System.out.println(storageManager.getMapValue("map2", "mapkey2"));
-//		System.out.println(storageManager.getMapValue("map2", "mapkey3"));
-
 	}
+
 }

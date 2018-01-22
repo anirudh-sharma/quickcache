@@ -1,10 +1,11 @@
 package com.quickcache.server.manager;
 
-import com.quickcache.server.storage.config.Configuration;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ClientConnectionManager {
 
-	public ClientConnectionManager(Configuration configuration) {
+	public ClientConnectionManager() {
 		
 	}
 }
