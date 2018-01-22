@@ -9,6 +9,7 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.quickcache.server.constants.AppConstants;
 import com.quickcache.server.storage.StorageUnit;
 
 @Component
@@ -16,7 +17,7 @@ public class StorageManager {
 
 	private StorageUnit[] storageUnits;
 
-	@Value("${quickcache.core.concurrency.level}")
+	@Value("${"+AppConstants.ConcurrencyLevelPropertyName+"}")
 	private int concurrencyLevel;
 
 	@PostConstruct

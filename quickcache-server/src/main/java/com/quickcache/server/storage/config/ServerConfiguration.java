@@ -3,12 +3,15 @@ package com.quickcache.server.storage.config;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
 import com.quickcache.server.QuickCache;
+import com.quickcache.server.constants.AppConstants;
 import com.quickcache.server.manager.ClientConnectionManager;
 import com.quickcache.server.manager.PersistenceManager;
 import com.quickcache.server.manager.StorageManager;
@@ -30,6 +33,14 @@ public class ServerConfiguration {
 		ppc.setIgnoreUnresolvablePlaceholders(true);
 		return ppc;
 	}
+
+    @Bean
+    public EmbeddedServletContainerCustomizer containerCustomizer(@Value(value="${"+AppConstants.HttpConnectionPropertyName+"}") int serverPort) {
+    	System.out.println("test");
+    	return (container -> {
+            container.setPort(serverPort);
+        });
+    }
 
 	@Bean
 	public QuickCache init(StorageManager storageManager, ClientConnectionManager clientConnectionManager,
