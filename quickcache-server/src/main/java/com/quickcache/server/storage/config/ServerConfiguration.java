@@ -25,7 +25,7 @@ public class ServerConfiguration {
 		PropertySourcesPlaceholderConfigurer ppc = new PropertySourcesPlaceholderConfigurer();
 		Properties props = new Properties();
 		try {
-			props.load(ServerConfiguration.class.getClassLoader().getResourceAsStream("quickcache.config"));
+			props.load(ServerConfiguration.class.getClassLoader().getResourceAsStream("quickcache.manifest"));
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -36,7 +36,6 @@ public class ServerConfiguration {
 
     @Bean
     public EmbeddedServletContainerCustomizer containerCustomizer(@Value(value="${"+AppConstants.HttpConnectionPropertyName+"}") int serverPort) {
-    	System.out.println("test");
     	return (container -> {
             container.setPort(serverPort);
         });
