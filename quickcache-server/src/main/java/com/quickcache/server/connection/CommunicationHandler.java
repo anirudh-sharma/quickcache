@@ -15,16 +15,21 @@ import com.quickcache.server.manager.ClusterManager;
 import com.quickcache.server.protocol.ClusterResponse;
 import com.quickcache.server.protocol.ProtocolCommand;
 import com.quickcache.server.protocol.ProtocolDefinition;
-import com.quickcache.server.protocol.ProtocolResponseType;
+import com.quickcache.server.protocol.processor.DefaultRequestProcessor;
+import com.quickcache.server.protocol.processor.RequestProcessor;
 
 public class CommunicationHandler implements Runnable {
 
 	private static final Logger logger = LoggerFactory.getLogger(ClusterManager.class);
 
+	private final int serverId;
 	private Socket socket;
+	private RequestProcessor requestProcessor;
 
-	public CommunicationHandler(Socket socket) {
+	public CommunicationHandler(int serverId, Socket socket) {
+		this.serverId = serverId;
 		this.socket = socket;
+		this.requestProcessor = new DefaultRequestProcessor();
 	}
 
 	@Override
@@ -32,40 +37,44 @@ public class CommunicationHandler implements Runnable {
 		try {
 			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			PrintWriter printWriter = new PrintWriter(socket.getOutputStream());
+			if (connectToNameNode(bufferedReader, printWriter))
+				logger.info("Connected to name node for server push");
 			while (true) {
 				List<String> clientRequestBuffer = new ArrayList<>();
-				String clientRequestPart = null;
-				while (!(clientRequestPart = bufferedReader.readLine()).equals(ProtocolDefinition.REQUEST_END)) {
-					clientRequestBuffer.add(clientRequestPart);
+				String clientRequestPart = bufferedReader.readLine();
+				while (!(clientRequestPart).equals(ProtocolDefinition.SERVER_PUSH_END)) {
+					if (!clientRequestPart.equals(ProtocolDefinition.EMPTY_STRING))
+						clientRequestBuffer.add(clientRequestPart);
+					clientRequestPart = bufferedReader.readLine();
 				}
-				ClusterResponse response = handleRequest(clientRequestBuffer);
-				printWriter.println(response.getProtocolResponseType().toString());
+				logger.info("Server Push Recieved: "+clientRequestBuffer);
+				ClusterResponse response = processRequest(clientRequestBuffer);
+
+				printWriter.println(this.serverId);
+				printWriter.println(ProtocolCommand.RESPONSE_FROM_CLIENT);
 				if (response.getResponseBody() != null) {
-					for (String responsePart : response.getResponseBody()) {
-						printWriter.println(responsePart);
-					}
+					printWriter.println(response.getResponseBody());
 				}
-				printWriter.println(ProtocolDefinition.RESPONSE_END);
+				printWriter.println(ProtocolDefinition.CLIENT_ACK_END.toString());
+				printWriter.println("\n");
 				printWriter.flush();
+
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public ClusterResponse handleRequest(List<String> clientRequestBuffer) {
-		ProtocolCommand protocolCommand = ProtocolCommand.valueOf(clientRequestBuffer.get(0));
-		ClusterResponse response = null;
-		switch (protocolCommand) {
-		case REGISTER:
-			response = new ClusterResponse(ProtocolResponseType.SUCCESS, null);
-			logger.info("Successfully registered a shard node at: "+this.socket.getRemoteSocketAddress());
-			break;
-		default:
-			response = new ClusterResponse(ProtocolResponseType.UNDEFINED, null);
-			break;
-		}
-		return response;
+	public ClusterResponse processRequest(List<String> clientRequestBuffer) {
+		return this.requestProcessor.processRequest(clientRequestBuffer, null, null);
+	}
+
+	private boolean connectToNameNode(BufferedReader bufferedReader, PrintWriter printWriter) throws IOException {
+		printWriter.println(this.serverId);
+		printWriter.println(ProtocolCommand.REGISTER_FOR_SERVER_PUSH);
+		printWriter.println(ProtocolDefinition.REQUEST_END);
+		printWriter.flush();
+		return true;
 	}
 
 }

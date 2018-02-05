@@ -3,3 +3,5 @@ quickcache.core.http.connection.port=9090
 quickcache.core.cluster.connection.port=8787
 quickcache.core.client.connection.port=9091
 quickcache.core.name.node.url=DUMMYVALUE
+
+quickcache.core.server.id=1

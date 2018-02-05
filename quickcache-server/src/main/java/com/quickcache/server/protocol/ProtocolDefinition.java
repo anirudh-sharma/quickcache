@@ -7,5 +7,6 @@ public class ProtocolDefinition {
 
 	public static final String SERVER_PUSH_END = "%%%%%%%SERVERPUSHEND%%%%%%%";
 	public static final String CLIENT_ACK_END = "%%%%%%%CLIENTACKEND%%%%%%%";
-
+	
+	public static final String EMPTY_STRING = "";
 }

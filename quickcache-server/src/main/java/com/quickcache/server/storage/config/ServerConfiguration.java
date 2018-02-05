@@ -13,11 +13,12 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import com.quickcache.server.QuickCache;
 import com.quickcache.server.constants.AppConstants;
 import com.quickcache.server.manager.ClientConnectionManager;
+import com.quickcache.server.manager.ClusterManager;
 import com.quickcache.server.manager.PersistenceManager;
 import com.quickcache.server.manager.StorageManager;
 
 @Configuration
-@ComponentScan(basePackages = { "com.quickcache.server.manager", "com.quickcache.server.storage.controllers" })
+@ComponentScan(basePackages = { "com.quickcache.server.manager", "com.quickcache.server.storage.controllers", "com.quickcache.server.protocol.processor"})
 public class ServerConfiguration {
 
 	@Bean
@@ -42,12 +43,10 @@ public class ServerConfiguration {
     }
 
 	@Bean
-	public QuickCache init(StorageManager storageManager, ClientConnectionManager clientConnectionManager,
-			PersistenceManager persistenceManager) {
+	public QuickCache init(StorageManager storageManager, ClusterManager clusterManager) {
 		QuickCache quickCache = new QuickCache();
 		quickCache.setStorageManager(storageManager);
-		quickCache.setClientConnectionManager(clientConnectionManager);
-		quickCache.setPersistenceManager(persistenceManager);
+		quickCache.setClusterManager(clusterManager);
 
 		quickCache.init();
 
