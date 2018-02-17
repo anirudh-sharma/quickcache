@@ -12,9 +12,7 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
 import com.quickcache.server.QuickCache;
 import com.quickcache.server.constants.AppConstants;
-import com.quickcache.server.manager.ClientConnectionManager;
 import com.quickcache.server.manager.ClusterManager;
-import com.quickcache.server.manager.PersistenceManager;
 import com.quickcache.server.manager.StorageManager;
 
 @Configuration

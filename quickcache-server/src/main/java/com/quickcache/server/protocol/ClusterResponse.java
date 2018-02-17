@@ -4,13 +4,13 @@ public class ClusterResponse {
 
 	private ProtocolResponseType protocolResponseType;
 	private String responseBody;
-	private boolean responseFromClient;
+	private boolean responseRequired;
 
-	public ClusterResponse(ProtocolResponseType protocolResponseType, String responseBody, boolean responseFromClient) {
+	public ClusterResponse(ProtocolResponseType protocolResponseType, String responseBody, boolean responseRequired) {
 		super();
 		this.protocolResponseType = protocolResponseType;
 		this.responseBody = responseBody;
-		this.responseFromClient = responseFromClient;
+		this.responseRequired = responseRequired;
 	}
 
 	public ProtocolResponseType getProtocolResponseType() {
@@ -20,9 +20,9 @@ public class ClusterResponse {
 	public String getResponseBody() {
 		return responseBody;
 	}
-	
-	public boolean isResponseFromClient() {
-		return this.responseFromClient;
+
+	public boolean isResponseRequired() {
+		return this.responseRequired;
 	}
 
 }

@@ -62,7 +62,6 @@ public class ClusterServer {
 		logger.info("Name node started...");
 
 		final Selector clientConnectionSelector = selector;
-		// final Selector clientReadConnectionSelector = readSelector;
 
 		new Thread(new Runnable() {
 			@Override
@@ -123,7 +122,6 @@ public class ClusterServer {
 	}
 
 	public void connectionAcceptHandler(SelectionKey selectionKey, Selector selector) throws IOException {
-		logger.info("isReadable: " + selectionKey.isReadable() + " isAcceptable: " + selectionKey.isAcceptable());
 		ServerSocketChannel serverSocketChannel = (ServerSocketChannel) selectionKey.channel();
 		SocketChannel socketChannel = serverSocketChannel.accept();
 		socketChannel.configureBlocking(false);
@@ -133,8 +131,6 @@ public class ClusterServer {
 	}
 
 	public void connectionReadHandler(SelectionKey selectionKey) throws IOException {
-		logger.info("isReadable: " + selectionKey.isReadable() + " isAcceptable: " + selectionKey.isAcceptable());
-
 		SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
 		try {
 			socketChannel.configureBlocking(false);
@@ -180,7 +176,7 @@ public class ClusterServer {
 			ClusterResponse response = requestProcessor.processRequest(clientRequestBuffer, clusterManager,
 					socketChannel);
 
-			if (response.isResponseFromClient()) {
+			if (!response.isResponseRequired()) {
 				logger.info("Response from client......" + clientRequestBuffer);
 				Map<String, String> responseBodyMap = null;
 				if(responseBody != null) {

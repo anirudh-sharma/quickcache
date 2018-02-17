@@ -58,7 +58,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
 			}
 			nodeConnection.setChannel(socketChannel);
 			logger.info("Shard node registered...");
-			response = new ClusterResponse(ProtocolResponseType.SUCCESS, null, false);
+			response = new ClusterResponse(ProtocolResponseType.SUCCESS, null, true);
 			break;
 		case REGISTER_FOR_SERVER_PUSH:
 			nodeConnection = clusterManager.getNodeMap().get(serverId);
@@ -69,24 +69,24 @@ public class DefaultRequestProcessor implements RequestProcessor {
 			nodeConnection.setServerPushChannel(socketChannel);
 			clusterManager.addRequest(new ClusterRequest(1, serverId, ProtocolCommand.HANDSHAKE_COMPLETE, null));
 			logger.info("Shard node registered for server push...");
-			response = new ClusterResponse(ProtocolResponseType.SUCCESS, null, true);
+			response = new ClusterResponse(ProtocolResponseType.SUCCESS, null, false);
 			break;
 		case HANDSHAKE_COMPLETE:
-			response = new ClusterResponse(ProtocolResponseType.SUCCESS, null, false);
+			response = new ClusterResponse(ProtocolResponseType.SUCCESS, null, true);
 			break;
 		case RESPONSE_FROM_CLIENT:
 			logger.info("Response received from client");
-			response = new ClusterResponse(ProtocolResponseType.SUCCESS, null, true);
+			response = new ClusterResponse(ProtocolResponseType.SUCCESS, null, false);
 			break;
 		case SET_STRING:
 			logger.info("Set string operation from name node");
 			logger.info(requestBodyMap.toString());
 			QuickCache.getStorageManager().setValue(requestBodyMap.get("key"), requestBodyMap.get("value"));
-			response = new ClusterResponse(ProtocolResponseType.SUCCESS, null, true);
+			response = new ClusterResponse(ProtocolResponseType.SUCCESS, null, false);
 			response = new ClusterResponse(ProtocolResponseType.SUCCESS,
 					"{\"requestId\":" + requestBodyMap.get("requestId") + ",\"key\":\"" + requestBodyMap.get("key")
 							+ "\",\"value\":\"" + requestBodyMap.get("value") + "\"}",
-					true);
+					false);
 			break;
 		case GET_STRING:
 			logger.info("Get string operation from name node");
@@ -98,10 +98,10 @@ public class DefaultRequestProcessor implements RequestProcessor {
 			response = new ClusterResponse(ProtocolResponseType.SUCCESS,
 					"{\"requestId\":" + requestBodyMap.get("requestId") + ",\"key\":\"" + requestBodyMap.get("key")
 							+ "\",\"value\":" + value + "}",
-					true);
+					false);
 			break;
 		default:
-			response = new ClusterResponse(ProtocolResponseType.UNDEFINED, null, false);
+			response = new ClusterResponse(ProtocolResponseType.UNDEFINED, null, true);
 			break;
 		}
 		return response;
