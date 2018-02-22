@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.quickcache.server.constants.ErrorCodes;
 import com.quickcache.server.exception.QuickCacheOperationException;
 import com.quickcache.server.manager.StorageManager;
 
@@ -31,8 +30,13 @@ public class ListRestController {
 		return storageManager.getListItems(key, true, 0 , 0);
 	}
 
-	@RequestMapping("/{key}/{offset}/{length}")
-	public List<String> getListItems(@PathVariable("key") String key, @PathVariable("offset") int offset, @PathVariable("length") int length) {
+	@RequestMapping("/{key}/{offset}")
+	public List<String> getListItemsWithOffset(@PathVariable("key") String key, @PathVariable("offset") int offset) {
+		return storageManager.getListItems(key, false, offset, -1);
+	}
+
+	@RequestMapping("/{key}/{start}/{end}")
+	public List<String> getListItemsWithStartEnd(@PathVariable("key") String key, @PathVariable("start") int offset, @PathVariable("end") int length) {
 		return storageManager.getListItems(key, false, offset , length);
 	}
 
@@ -42,15 +46,15 @@ public class ListRestController {
 		return new ResponseEntity<String>(item, HttpStatus.ACCEPTED);
 	}
 
-	@RequestMapping(value="/{key}/item/{item}", method=RequestMethod.DELETE)
-	public ResponseEntity<String> removeListItem(@PathVariable("key") String key, @PathVariable("item") String item) {
-		String removedItem = storageManager.removeListItem(key, true, item, 0);
-		if (removedItem != null)
-			return new ResponseEntity<String>(removedItem, HttpStatus.ACCEPTED);
-		else
-			return new ResponseEntity<String>(ErrorCodes.QC0003, HttpStatus.BAD_REQUEST);
-	}
-	
+//	@RequestMapping(value="/{key}/item/{item}", method=RequestMethod.DELETE)
+//	public ResponseEntity<String> removeListItem(@PathVariable("key") String key, @PathVariable("item") String item) {
+//		String removedItem = storageManager.removeListItem(key, true, item, 0);
+//		if (removedItem != null)
+//			return new ResponseEntity<String>(removedItem, HttpStatus.ACCEPTED);
+//		else
+//			return new ResponseEntity<String>(ErrorCodes.QC0003, HttpStatus.BAD_REQUEST);
+//	}
+
 	@RequestMapping(value="/{key}/position/{index}", method=RequestMethod.DELETE)
 	public ResponseEntity<String> removeListItem(@PathVariable("key") String key, @PathVariable("index") int index) {
 		try {

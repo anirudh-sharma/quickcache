@@ -6,7 +6,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class MapStorage implements StorageValue {
+public class MapStorage implements StorageType {
 
 	private ConcurrentMap<String, String> dataMap;
 	private Date lastModified;

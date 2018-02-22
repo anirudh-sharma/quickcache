@@ -2,7 +2,7 @@ package com.quickcache.server;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.PostConstruct;
 
@@ -21,14 +21,14 @@ public class QuickCache {
 	@Autowired
 	private ClusterManager clusterManager;
 
-	private final static AtomicInteger requestIdGenerator;
+	private final static AtomicLong requestIdGenerator;
 
 	static {
-		requestIdGenerator = new AtomicInteger();
+		requestIdGenerator = new AtomicLong();
 	}
 
 	private static Map<String, Object> componentStorage = new HashMap<>();
-	private static Map<Integer, ClusterRequestResponseWrapper> clusterRequestMap = new HashMap<Integer, ClusterRequestResponseWrapper>();
+	private static Map<Long, ClusterRequestResponseWrapper> clusterRequestMap = new HashMap<Long, ClusterRequestResponseWrapper>();
 
 	public void setStorageManager(StorageManager storageManager) {
 		componentStorage.put("storageManager", storageManager);
@@ -48,7 +48,7 @@ public class QuickCache {
 		return (ClusterManager) componentStorage.get("clusterManager");
 	}
 
-	public static int generateRequestId() {
+	public static long generateRequestId() {
 		return requestIdGenerator.incrementAndGet();
 	}
 
@@ -56,11 +56,11 @@ public class QuickCache {
 		clusterRequestMap.put(clusterRequestResponseWrapper.getRequestId(), clusterRequestResponseWrapper);
 	}
 	
-	public static ClusterRequestResponseWrapper getClusterRequest(int requestId) {
+	public static ClusterRequestResponseWrapper getClusterRequest(long requestId) {
 		return clusterRequestMap.get(requestId);
 	}
 
-	public static ClusterRequestResponseWrapper removeClusterRequest(int requestId) {
+	public static ClusterRequestResponseWrapper removeClusterRequest(long requestId) {
 		return clusterRequestMap.remove(requestId);
 	}
 	

@@ -2,7 +2,7 @@ package com.quickcache.server.storage.types;
 
 import java.util.Date;
 
-public class StringStorage implements StorageValue {
+public class StringStorage implements StorageType {
 
 	private String data;
 	private Date lastModified;

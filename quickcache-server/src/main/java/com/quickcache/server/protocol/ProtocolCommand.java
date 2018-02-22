@@ -8,5 +8,7 @@ public enum ProtocolCommand {
 	GET_STRING,
 	SET_STRING,
 	GET_MAP_VALUE,
+	GET_MAP_FIELDS,
+	GET_MAP_FIELD_VALUES,
 	SET_MAP_VALUE;
 }

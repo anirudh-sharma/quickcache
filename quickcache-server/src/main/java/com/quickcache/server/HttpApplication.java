@@ -4,7 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Import;
 
-import com.quickcache.server.storage.config.ServerConfiguration;
+import com.quickcache.server.config.ServerConfiguration;
 
 @SpringBootApplication
 @Import(value=ServerConfiguration.class)

@@ -1,3 +1,3 @@
 package com.quickcache.server.storage.types;
 
-public interface StorageValue {}
+public interface StorageType{}

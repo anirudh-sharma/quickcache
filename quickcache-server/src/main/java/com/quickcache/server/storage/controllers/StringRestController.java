@@ -1,5 +1,8 @@
 package com.quickcache.server.storage.controllers;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +32,14 @@ public class StringRestController {
 
 	@RequestMapping(value = "/{key}", method = RequestMethod.POST)
 	public ResponseEntity<String> setValue(@PathVariable("key") String key, @RequestBody String value) {
+		try {
+			value = URLDecoder.decode(value, "utf-8");
+			if(value.endsWith("=")){
+				value = value.substring(0, (value.length() - 1));
+			}
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
 		storageManager.setValue(key, value);
 		return new ResponseEntity<String>(value, HttpStatus.ACCEPTED);
 	}

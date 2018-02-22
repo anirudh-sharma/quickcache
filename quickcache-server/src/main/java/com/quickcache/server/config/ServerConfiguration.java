@@ -1,4 +1,4 @@
-package com.quickcache.server.storage.config;
+package com.quickcache.server.config;
 
 import java.io.IOException;
 import java.util.Properties;

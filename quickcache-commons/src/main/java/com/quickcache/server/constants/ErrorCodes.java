@@ -10,6 +10,8 @@ public class ErrorCodes {
 	public static final String QC0003 = "QC0003: Item Does Not Exist in List";
 	public static final String QC0004 = "QC0004: Field Does Not Exist in Map";
 	public static final String QC0005 = "QC0005: Index out of bound";
+	public static final String QC0006 = "QC0006: key cannot be null";
+	public static final String QC0007 = "QC0007: value cannot be null";
 	
 	public static final Map<Integer, String> errorCodeMap;
 	
@@ -20,6 +22,8 @@ public class ErrorCodes {
 		errorCodeMap.put(3, QC0003);
 		errorCodeMap.put(4, QC0004);
 		errorCodeMap.put(5, QC0005);
+		errorCodeMap.put(6, QC0006);
+		errorCodeMap.put(7, QC0007);
 	}
 	
 	public static String getMessage(Integer code) {

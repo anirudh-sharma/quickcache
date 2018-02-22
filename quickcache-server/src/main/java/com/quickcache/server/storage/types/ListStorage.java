@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-public class ListStorage implements StorageValue {
+public class ListStorage implements StorageType {
 
 	private List<String> dataList;
 	private Date lastModified;
@@ -44,6 +44,8 @@ public class ListStorage implements StorageValue {
 
 	public List<String> getItems(int offset, int length) {
 		this.lastAccessed = new Date();
+		if (length == -1) 
+			length = this.dataList.size();
 		return Collections.unmodifiableList(this.dataList.subList(offset, length));
 	}
 

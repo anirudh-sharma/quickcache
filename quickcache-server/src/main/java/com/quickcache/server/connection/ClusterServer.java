@@ -181,12 +181,11 @@ public class ClusterServer {
 				Map<String, String> responseBodyMap = null;
 				if(responseBody != null) {
 					ObjectMapper mapper = new ObjectMapper();
-					TypeReference<HashMap<String, String>> typeRef = new TypeReference<HashMap<String, String>>() {
-					};
+					TypeReference<HashMap<String, String>> typeRef = new TypeReference<HashMap<String, String>>() {};
 					try {
 						responseBodyMap = mapper.readValue(responseBody, typeRef);
 						if(responseBodyMap != null) {
-							int requestId = Integer.parseInt(responseBodyMap.get("requestId"));
+							long requestId = Long.parseLong(responseBodyMap.get("requestId"));
 							ClusterRequestResponseWrapper clusterRequestResponseWrapper = QuickCache.getClusterRequest(requestId);
 							clusterRequestResponseWrapper.setResponseBody(responseBodyMap);
 							clusterRequestResponseWrapper.getCountDownLatch().countDown();

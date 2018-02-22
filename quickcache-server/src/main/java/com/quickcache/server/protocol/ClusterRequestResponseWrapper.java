@@ -5,16 +5,16 @@ import java.util.concurrent.CountDownLatch;
 
 public class ClusterRequestResponseWrapper {
 
-	private int requestId;
+	private long requestId;
 	private ClusterRequest clusterRequest;
 	private Map<String, String> responseBody;
 	private CountDownLatch countDownLatch;
 
-	public int getRequestId() {
+	public long getRequestId() {
 		return requestId;
 	}
 
-	public void setRequestId(int requestId) {
+	public void setRequestId(long requestId) {
 		this.requestId = requestId;
 	}
 

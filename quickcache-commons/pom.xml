@@ -9,18 +9,14 @@
 		<version>1.0-SNAPSHOT</version>
 	</parent>
 	<groupId>com.quickcache</groupId>
-	<artifactId>quickcache-client</artifactId>
+	<artifactId>quickcache-commons</artifactId>
 	<version>1.0-SNAPSHOT</version>
-	<name>quickcache-client</name>
+	<name>quickcache-commons</name>
 	<url>http://maven.apache.org</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<dependencies>
-		<dependency>
-			<groupId>com.quickcache</groupId>
-			<artifactId>quickcache-commons</artifactId>
-		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

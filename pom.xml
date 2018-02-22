@@ -20,10 +20,21 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
+		<quickcache.version>1.0-SNAPSHOT</quickcache.version>
 	</properties>
 
 	<modules>
-		<module>quickcache-server</module>
+		<module>quickcache-commons</module>
 		<module>quickcache-client</module>
+		<module>quickcache-server</module>
 	</modules>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.quickcache</groupId>
+				<artifactId>quickcache-commons</artifactId>
+				<version>${quickcache.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 </project>
