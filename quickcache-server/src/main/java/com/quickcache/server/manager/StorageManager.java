@@ -156,11 +156,13 @@ public class StorageManager {
 			} else {
 				long requestId = QuickCache.generateRequestId();
 				ClusterRequest clusterRequest = new ClusterRequest(this.serverId, serverId,
-						ProtocolCommand.GET_MAP_FIELD_VALUES, "{\"requestId\":" + requestId + ",\"key\":\"" + key + "\"}");
+						ProtocolCommand.GET_MAP_FIELD_VALUES,
+						"{\"requestId\":" + requestId + ",\"key\":\"" + key + "\"}");
 
 				String map = getResponseSynchronously(requestId, clusterRequest).get("map");
 				ObjectMapper mapper = new ObjectMapper();
-				TypeReference<HashMap<String, String>> typeRef = new TypeReference<HashMap<String, String>>() {};
+				TypeReference<HashMap<String, String>> typeRef = new TypeReference<HashMap<String, String>>() {
+				};
 				try {
 					return mapper.readValue(map, typeRef);
 				} catch (IOException e) {
@@ -191,15 +193,59 @@ public class StorageManager {
 
 	// List Operations
 	public List<String> getListItems(String key, boolean allItems, int offset, int length) {
-		return storageUnits[getStorageUnitCount(key)].getListItems(key, allItems, offset, length);
+
+		if (isShardNode) {
+			return storageUnits[getStorageUnitCount(key)].getListItems(key, allItems, offset, length);
+		} else {
+			int serverId = getServerId(key);
+			if (this.serverId == serverId) {
+				return storageUnits[getStorageUnitCount(key)].getListItems(key, allItems, offset, length);
+			} else {
+				long requestId = QuickCache.generateRequestId();
+				ClusterRequest clusterRequest = new ClusterRequest(this.serverId, serverId,
+						ProtocolCommand.GET_LIST_ITEMS,
+						"{\"requestId\":" + requestId + ",\"key\":\"" + key + "\",\"allItems\": " + allItems
+								+ ", \"offset\": " + offset + ",\"length\":" + length + "}");
+
+				String items = getResponseSynchronously(requestId, clusterRequest).get("items");
+				
+				try {
+					if(items != null) {
+						ObjectMapper mapper = new ObjectMapper();
+						TypeReference<ArrayList<String>> typeRef = new TypeReference<ArrayList<String>>() {
+						};
+						return mapper.readValue(items, typeRef);
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				return null;
+			}
+		}
+
 	}
 
 	public void addListItem(String key, String item) {
-		storageUnits[getStorageUnitCount(key)].addListItem(key, item);
+		if (isShardNode) {
+			storageUnits[getStorageUnitCount(key)].addListItem(key, item);
+		} else {
+			int serverId = getServerId(key);
+			if (this.serverId == serverId) {
+				storageUnits[getStorageUnitCount(key)].addListItem(key, item);
+			} else {
+				long requestId = QuickCache.generateRequestId();
+				ClusterRequest clusterRequest = new ClusterRequest(this.serverId, serverId,
+						ProtocolCommand.ADD_LIST_ITEM, "{\"requestId\":" + requestId + ",\"key\":\"" + key
+								+ "\",\"item\":\"" + item + "\"}");
+				getResponseSynchronously(requestId, clusterRequest).get("value");
+				return;
+			}
+		}
+		
 	}
 
-	public String removeListItem(String key, boolean isItem, String item, int index) {
-		return storageUnits[getStorageUnitCount(key)].removeListItem(key, isItem, item, index);
+	public String removeListItem(String key, int index) {
+		return storageUnits[getStorageUnitCount(key)].removeListItem(key, index);
 	}
 
 	private int getStorageUnitCount(String key) {

@@ -1,30 +1,26 @@
 package org.quickcache.client;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Base64;
+import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.quickcache.client.config.ClientConfig;
-import org.quickcache.client.config.Endpoint;
-import org.quickcache.client.config.QuickCacheMethod;
-
-import com.quickcache.server.exception.QuickCacheOperationException;
+import org.quickcache.client.config.operations.ListOperation;
+import org.quickcache.client.config.operations.MapOperation;
+import org.quickcache.client.config.operations.StringOperation;
 
 public class QuickCacheClient {
 
 	private ClientConfig clientConfig;
 
 	private String baseUrl;
+
+	private StringOperation stringOperation;
+
+	private MapOperation mapOperation;
+
+	private ListOperation listOperation;
 
 	public ClientConfig getClientConfig() {
 		return clientConfig;
@@ -37,121 +33,64 @@ public class QuickCacheClient {
 		}
 		this.baseUrl = new StringBuilder().append("http://").append(this.clientConfig.getHostName()).append(":")
 				.append(this.clientConfig.getPort()).toString();
+		this.stringOperation = new StringOperation(baseUrl);
+		this.mapOperation = new MapOperation(baseUrl);
+		this.listOperation = new ListOperation(baseUrl);
 	}
 
-	public <T> T getObject(String key) {
-		return null;
+	// String Operations
+	public <T extends Serializable> T getObject(String key) {
+		return this.stringOperation.getObject(key);
 	}
 
-	public <T> void setObject(String key, T object) {
-
-		if (key == null || key.isEmpty()) {
-			throw new QuickCacheOperationException(6);
-		}
-		if (object == null) {
-			throw new QuickCacheOperationException(7);
-		}
-		
-//        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//        ObjectOutputStream oos = new ObjectOutputStream( baos );
-//        oos.writeObject( object );
-//        oos.close();
-        String value = null;//Base64.getEncoder().encodeToString(baos.toByteArray());
-        
-		try {
-			URL url = new URL(this.baseUrl + "/" + Endpoint.STRING.getValue() + "/" + key);
-			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-			byte[] postData = value.getBytes(StandardCharsets.UTF_8);
-
-			connection.setDoOutput(true);
-			connection.setRequestMethod(QuickCacheMethod.POST.toString());
-			connection.setRequestProperty("charset", "utf-8");
-			connection.setRequestProperty("Content-Length", Integer.toString(postData.length));
-
-			PrintWriter printWriter = new PrintWriter(connection.getOutputStream());
-			printWriter.print(URLEncoder.encode(value, "utf-8"));
-			printWriter.flush();
-
-			if (connection.getResponseCode() >= 200) {
-				BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-				String responsePart;
-				List<String> responseBuffer = new ArrayList<>();
-				while ((responsePart = bufferedReader.readLine()) != null) {
-					responseBuffer.add(responsePart);
-				}
-				//return String.join("\n", responseBuffer);
-			}
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		//return null;
+	public <T extends Serializable> void setObject(String key, T object) {
+		this.stringOperation.setObject(key, object);
 	}
 
 	public String getString(String key) {
-		if (key == null || key.isEmpty()) {
-			throw new QuickCacheOperationException(6);
-		}
-		try {
-			URL url = new URL(this.baseUrl + "/" + Endpoint.STRING.getValue() + "/" + key);
-			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-			connection.setRequestMethod(QuickCacheMethod.GET.toString());
-			connection.setRequestProperty("Accept", "text/plain");
-
-			if (connection.getResponseCode() >= 200) {
-				BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-
-				String responsePart;
-				List<String> responseBuffer = new ArrayList<>();
-				while ((responsePart = bufferedReader.readLine()) != null) {
-					responseBuffer.add(responsePart);
-				}
-				return String.join("\n", responseBuffer);
-			}
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		return null;
+		return this.stringOperation.getString(key);
 	}
 
 	public String setString(String key, String value) {
-		if (key == null || key.isEmpty()) {
-			throw new QuickCacheOperationException(6);
-		}
-		if (value == null || value.isEmpty()) {
-			throw new QuickCacheOperationException(7);
-		}
-		try {
-			URL url = new URL(this.baseUrl + "/" + Endpoint.STRING.getValue() + "/" + key);
-			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-			byte[] postData = value.getBytes(StandardCharsets.UTF_8);
-
-			connection.setDoOutput(true);
-			connection.setRequestMethod(QuickCacheMethod.POST.toString());
-			connection.setRequestProperty("charset", "utf-8");
-			connection.setRequestProperty("Content-Length", Integer.toString(postData.length));
-
-			PrintWriter printWriter = new PrintWriter(connection.getOutputStream());
-			printWriter.print(URLEncoder.encode(value, "utf-8"));
-			printWriter.flush();
-
-			if (connection.getResponseCode() >= 200) {
-				BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-				String responsePart;
-				List<String> responseBuffer = new ArrayList<>();
-				while ((responsePart = bufferedReader.readLine()) != null) {
-					responseBuffer.add(responsePart);
-				}
-				return String.join("\n", responseBuffer);
-			}
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
+		return this.stringOperation.setString(key, value);
 	}
+
+	// Map Operations
+	public String getMapValue(String key, String field) {
+		return this.mapOperation.getMapValue(key, field);
+	}
+
+	public Set<String> getMapFields(String key) {
+		return this.mapOperation.getMapFields(key);
+	}
+
+	public Map<String, String> getMapFieldValues(String key) {
+		return this.mapOperation.getMapFieldValues(key);
+	}
+
+	public String setMapValue(String key, String field, String value) {
+		return this.mapOperation.setMapValue(key, field, value);
+	}
+
+	// List Operations
+	public List<String> getListItems(String key) {
+		return this.listOperation.getListItems(key);
+	}
+
+	public List<String> getListItems(String key, int offset) {
+		return this.listOperation.getListItems(key, offset);
+	}
+
+	public List<String> getListItems(String key, int start, int length) {
+		return this.listOperation.getListItems(key, start, length);
+	}
+
+	public String addListItem(String key, String item) {
+		return this.listOperation.addListItem(key, item);
+	}
+
+	public String removeListItem(String key, int position) {
+		return this.listOperation.removeListItem(key, position);
+	}
+
 }

@@ -1,5 +1,7 @@
 package com.quickcache.server.storage.controllers;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Map;
 import java.util.Set;
 
@@ -42,6 +44,14 @@ public class MapRestController {
 	
 	@RequestMapping(value = "/{key}/{field}", method = RequestMethod.POST)
 	public ResponseEntity<String> setValue(@PathVariable("key") String key, @PathVariable("field") String field, @RequestBody String value) {
+		try {
+			value = URLDecoder.decode(value, "utf-8");
+			if(value.endsWith("=")){
+				value = value.substring(0, (value.length() - 1));
+			}
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
 		storageManager.setMapValue(key, field, value);
 		return new ResponseEntity<String>(value, HttpStatus.ACCEPTED);
 	}

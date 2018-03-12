@@ -46,7 +46,7 @@ public class ListStorage implements StorageType {
 		this.lastAccessed = new Date();
 		if (length == -1) 
 			length = this.dataList.size();
-		return Collections.unmodifiableList(this.dataList.subList(offset, length));
+		return new ArrayList<>(this.dataList.subList(offset, length));
 	}
 
 	public Date getLastModified() {

@@ -1,5 +1,7 @@
 package com.quickcache.server.storage.controllers;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,23 +44,22 @@ public class ListRestController {
 
 	@RequestMapping(value="/{key}", method=RequestMethod.POST)
 	public ResponseEntity<String> addListItem(@PathVariable("key") String key, @RequestBody String item) {
+		try {
+			item = URLDecoder.decode(item, "utf-8");
+			if(item.endsWith("=")){
+				item = item.substring(0, (item.length() - 1));
+			}
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
 		storageManager.addListItem(key, item);
 		return new ResponseEntity<String>(item, HttpStatus.ACCEPTED);
 	}
 
-//	@RequestMapping(value="/{key}/item/{item}", method=RequestMethod.DELETE)
-//	public ResponseEntity<String> removeListItem(@PathVariable("key") String key, @PathVariable("item") String item) {
-//		String removedItem = storageManager.removeListItem(key, true, item, 0);
-//		if (removedItem != null)
-//			return new ResponseEntity<String>(removedItem, HttpStatus.ACCEPTED);
-//		else
-//			return new ResponseEntity<String>(ErrorCodes.QC0003, HttpStatus.BAD_REQUEST);
-//	}
-
-	@RequestMapping(value="/{key}/position/{index}", method=RequestMethod.DELETE)
+	@RequestMapping(value="/{key}/{index}", method=RequestMethod.DELETE)
 	public ResponseEntity<String> removeListItem(@PathVariable("key") String key, @PathVariable("index") int index) {
 		try {
-			return new ResponseEntity<String>(storageManager.removeListItem(key, false, null, index), HttpStatus.ACCEPTED);
+			return new ResponseEntity<String>(storageManager.removeListItem(key, index), HttpStatus.ACCEPTED);
 		} catch(QuickCacheOperationException exception) {
 			return new ResponseEntity<String>(exception.getMessage(), HttpStatus.BAD_REQUEST);
 		}

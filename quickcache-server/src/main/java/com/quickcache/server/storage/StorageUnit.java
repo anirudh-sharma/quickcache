@@ -144,23 +144,17 @@ public class StorageUnit {
 		}
 	}
 
-	public String removeListItem(String key, boolean isItem, String item, int index) {
+	public String removeListItem(String key, int index) {
 		try {
 			writeLock.lock();
 			ListStorage listStorage = listStore.get(key);
 			if (listStorage != null) {
-				if(isItem) {
-					if(listStorage.remove(item))
-						return item;
-					else
-						return null;
-				}
+				String item = null;
 				try{
 					item = listStorage.remove(index);
 				} catch(IndexOutOfBoundsException exception){
 					throw new QuickCacheOperationException(5);
 				}
-				
 				return item;
 			}
 			return null;

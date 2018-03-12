@@ -1,7 +1,5 @@
 package com.quickcache.server.protocol;
 
-import java.util.List;
-
 public class ClusterRequest {
 
 	private Integer toServerId;

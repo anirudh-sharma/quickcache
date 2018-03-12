@@ -3,6 +3,7 @@ package com.quickcache.server.protocol.processor;
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,7 +51,6 @@ public class DefaultRequestProcessor implements RequestProcessor {
 		ClusterResponse response = null;
 		ServerNodeConnection nodeConnection;
 		String value = null;
-		Set<String> fields = null;
 		Map<String, String> valueMap = null;
 		switch (protocolCommand) {
 		case REGISTER:
@@ -118,11 +118,14 @@ public class DefaultRequestProcessor implements RequestProcessor {
 		case GET_MAP_FIELDS:
 			logger.info("Get map fields operation from name node");
 			logger.info(requestBodyMap.toString());
-			fields = QuickCache.getStorageManager().getMapFields(requestBodyMap.get("key"));
+			Set<String> fields = QuickCache.getStorageManager().getMapFields(requestBodyMap.get("key"));
 			try {
 				Map<String, String> resMap = new HashMap<>();
 				if (fields != null) {
 					resMap.put("fields", mapper.writeValueAsString(fields));
+				}
+				if (fields.size() == 0) {
+					resMap.put("fields", mapper.writeValueAsString(new HashSet<String>()));
 				} else {
 					resMap.put("fields", null);
 				}
@@ -156,12 +159,47 @@ public class DefaultRequestProcessor implements RequestProcessor {
 			logger.info(requestBodyMap.toString());
 			QuickCache.getStorageManager().setMapValue(requestBodyMap.get("key"), requestBodyMap.get("field"),
 					requestBodyMap.get("value"));
-			response = new ClusterResponse(ProtocolResponseType.SUCCESS, null, false);
 			response = new ClusterResponse(ProtocolResponseType.SUCCESS,
 					"{\"requestId\":" + requestBodyMap.get("requestId") + ",\"key\":\"" + requestBodyMap.get("key")
 							+ "\",\"field\":\"" + requestBodyMap.get("field") + "\",\"value\":\""
 							+ requestBodyMap.get("value") + "\"}",
 					false);
+			break;
+
+		case GET_LIST_ITEMS:
+			logger.info("Get list items operation from name node");
+			logger.info(requestBodyMap.toString());
+			List<String> items = QuickCache.getStorageManager().getListItems(requestBodyMap.get("key"),
+					Boolean.parseBoolean(requestBodyMap.get("allItems")),
+					Integer.parseInt(requestBodyMap.get("offset")), Integer.parseInt(requestBodyMap.get("length")));
+			try {
+				Map<String, String> resMap = new HashMap<>();
+				if (items != null) {
+					resMap.put("items", mapper.writeValueAsString(items));
+				} else {
+					resMap.put("items", null);
+				}
+				resMap.put("requestId", requestBodyMap.get("requestId"));
+				resMap.put("key", requestBodyMap.get("key"));
+				logger.info("Processed: " + mapper.writeValueAsString(resMap));
+				response = new ClusterResponse(ProtocolResponseType.SUCCESS, mapper.writeValueAsString(resMap), false);
+			} catch (JsonProcessingException exception) {
+				exception.printStackTrace();
+			}
+			break;
+		case ADD_LIST_ITEM:
+			logger.info("Add list item operation from name node");
+			logger.info(requestBodyMap.toString());
+			QuickCache.getStorageManager().addListItem(requestBodyMap.get("key"), requestBodyMap.get("item"));
+			try {
+				Map<String, String> resMap = new HashMap<>();
+				resMap.put("item", requestBodyMap.get("item"));
+				resMap.put("requestId", requestBodyMap.get("requestId"));
+				resMap.put("key", requestBodyMap.get("key"));
+				response = new ClusterResponse(ProtocolResponseType.SUCCESS, mapper.writeValueAsString(resMap), false);
+			} catch (JsonProcessingException exception) {
+				exception.printStackTrace();
+			}
 			break;
 		default:
 			response = new ClusterResponse(ProtocolResponseType.UNDEFINED, null, true);
