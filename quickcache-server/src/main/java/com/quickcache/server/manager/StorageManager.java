@@ -14,6 +14,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -30,6 +32,8 @@ import com.quickcache.server.storage.StorageUnit;
 
 @Component
 public class StorageManager {
+
+	private static final Logger logger = LoggerFactory.getLogger(StorageManager.class);
 
 	private StorageUnit[] storageUnits;
 
@@ -69,6 +73,17 @@ public class StorageManager {
 
 	}
 
+	// Keys cache Operations
+	public void updateKeysCache(List<String> keys, int serverId) {
+		logger.info("Update keys cache with keys from shard node: "+serverId);
+		if(keys == null || keys.size() == 0) {
+			return;
+		}
+		for(String key: keys) {
+			this.keyMap.put(key, serverId);
+		}
+	}
+	
 	// String Operations
 	public String getValue(String key) {
 		if (isShardNode) {

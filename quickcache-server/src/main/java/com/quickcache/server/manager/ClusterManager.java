@@ -40,7 +40,8 @@ public class ClusterManager {
 	private ClusterServer clusterServer;
 	private Map<Integer, ServerNodeConnection> nodeMap;
 	private BlockingQueue<ClusterRequest> pushRequests;
-	
+	private NodeConnection nameNodeConnection;
+
 	@Autowired
 	private StorageManager storageManager;
 
@@ -53,7 +54,6 @@ public class ClusterManager {
 	}
 
 	public void setStorageManager(StorageManager storageManager) {
-		System.out.println("setStorageManager called");
 		this.storageManager = storageManager;
 	}
 
@@ -77,11 +77,11 @@ public class ClusterManager {
 				String[] urlTokens = this.nameNodeUrl.split(":");
 				Socket socket = new Socket(urlTokens[0], Integer.parseInt(urlTokens[1]));
 				Socket pushSocket = new Socket(urlTokens[0], Integer.parseInt(urlTokens[1]));
-				NodeConnection nodeConnection = new NodeConnection();
-				ClusterRequest clusterRequest1 = new ClusterRequest(this.serverId, null, ProtocolCommand.REGISTER,
+				nameNodeConnection = new NodeConnection();
+				ClusterRequest clusterRequest = new ClusterRequest(this.serverId, null, ProtocolCommand.REGISTER,
 						null);
-				nodeConnection.addRequest(clusterRequest1);
-				new Thread(new ClientCommunicationHandler(socket, nodeConnection)).start();
+				nameNodeConnection.addRequest(clusterRequest);
+				new Thread(new ClientCommunicationHandler(socket, nameNodeConnection)).start();
 				new Thread(new CommunicationHandler(this.serverId, pushSocket, this.storageManager)).start();
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -115,5 +115,9 @@ public class ClusterManager {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	public NodeConnection getNameNodeConnection() {
+		return this.nameNodeConnection;
 	}
 }
