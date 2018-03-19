@@ -52,7 +52,7 @@ public class ListRestController {
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
-		storageManager.addListItem(key, item);
+		storageManager.addListItem(key, item, false);
 		return new ResponseEntity<String>(item, HttpStatus.ACCEPTED);
 	}
 

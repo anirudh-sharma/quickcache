@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.quickcache.server.manager.ClusterManager;
+import com.quickcache.server.manager.StorageManager;
 import com.quickcache.server.protocol.ClusterResponse;
 import com.quickcache.server.protocol.ProtocolCommand;
 import com.quickcache.server.protocol.ProtocolDefinition;
@@ -26,10 +27,10 @@ public class CommunicationHandler implements Runnable {
 	private Socket socket;
 	private RequestProcessor requestProcessor;
 
-	public CommunicationHandler(int serverId, Socket socket) {
+	public CommunicationHandler(int serverId, Socket socket, StorageManager storageManager) {
 		this.serverId = serverId;
 		this.socket = socket;
-		this.requestProcessor = new DefaultRequestProcessor();
+		this.requestProcessor = new DefaultRequestProcessor(storageManager);
 	}
 
 	@Override

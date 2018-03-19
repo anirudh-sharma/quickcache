@@ -52,7 +52,7 @@ public class MapRestController {
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
-		storageManager.setMapValue(key, field, value);
+		storageManager.setMapValue(key, field, value, false);
 		return new ResponseEntity<String>(value, HttpStatus.ACCEPTED);
 	}
 }

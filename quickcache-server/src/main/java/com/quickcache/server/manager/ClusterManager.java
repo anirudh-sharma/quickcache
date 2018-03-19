@@ -12,6 +12,7 @@ import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -39,9 +40,21 @@ public class ClusterManager {
 	private ClusterServer clusterServer;
 	private Map<Integer, ServerNodeConnection> nodeMap;
 	private BlockingQueue<ClusterRequest> pushRequests;
+	
+	@Autowired
+	private StorageManager storageManager;
 
 	public ClusterManager() {
 		nodeMap = new HashMap<Integer, ServerNodeConnection>();
+	}
+
+	public StorageManager getStorageManager() {
+		return storageManager;
+	}
+
+	public void setStorageManager(StorageManager storageManager) {
+		System.out.println("setStorageManager called");
+		this.storageManager = storageManager;
 	}
 
 	public void setClusterPort(int clusterPort) {
@@ -65,10 +78,11 @@ public class ClusterManager {
 				Socket socket = new Socket(urlTokens[0], Integer.parseInt(urlTokens[1]));
 				Socket pushSocket = new Socket(urlTokens[0], Integer.parseInt(urlTokens[1]));
 				NodeConnection nodeConnection = new NodeConnection();
-				ClusterRequest clusterRequest1 = new ClusterRequest(this.serverId, null, ProtocolCommand.REGISTER, null);
+				ClusterRequest clusterRequest1 = new ClusterRequest(this.serverId, null, ProtocolCommand.REGISTER,
+						null);
 				nodeConnection.addRequest(clusterRequest1);
 				new Thread(new ClientCommunicationHandler(socket, nodeConnection)).start();
-				new Thread(new CommunicationHandler(this.serverId, pushSocket)).start();
+				new Thread(new CommunicationHandler(this.serverId, pushSocket, this.storageManager)).start();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

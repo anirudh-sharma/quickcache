@@ -40,7 +40,7 @@ public class ClusterServer {
 	public ClusterServer(ClusterManager clusterManager, int clusterPort) {
 		this.clusterManager = clusterManager;
 		this.clusterPort = clusterPort;
-		this.requestProcessor = new DefaultRequestProcessor();
+		this.requestProcessor = new DefaultRequestProcessor(this.clusterManager.getStorageManager());
 	}
 
 	public void initialize() {

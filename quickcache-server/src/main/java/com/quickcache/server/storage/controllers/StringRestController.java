@@ -40,7 +40,7 @@ public class StringRestController {
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
-		storageManager.setValue(key, value);
+		storageManager.setValue(key, value, false);
 		return new ResponseEntity<String>(value, HttpStatus.ACCEPTED);
 	}
 }

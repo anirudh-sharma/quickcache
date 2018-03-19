@@ -15,9 +15,9 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.quickcache.server.QuickCache;
 import com.quickcache.server.connection.ServerNodeConnection;
 import com.quickcache.server.manager.ClusterManager;
+import com.quickcache.server.manager.StorageManager;
 import com.quickcache.server.protocol.ClusterRequest;
 import com.quickcache.server.protocol.ClusterResponse;
 import com.quickcache.server.protocol.ProtocolCommand;
@@ -27,6 +27,12 @@ import com.quickcache.server.protocol.ProtocolResponseType;
 public class DefaultRequestProcessor implements RequestProcessor {
 
 	private static final Logger logger = LoggerFactory.getLogger(DefaultRequestProcessor.class);
+
+	private StorageManager storageManager;
+	
+	public DefaultRequestProcessor(StorageManager storageManager) {
+		this.storageManager = storageManager;
+	}
 
 	@Override
 	public ClusterResponse processRequest(List<String> clientRequestBuffer, ClusterManager clusterManager,
@@ -81,10 +87,14 @@ public class DefaultRequestProcessor implements RequestProcessor {
 			logger.info("Response received from client");
 			response = new ClusterResponse(ProtocolResponseType.SUCCESS, null, false);
 			break;
+		case UPDATE_KEYS_STORAGE:
+			logger.info("Updating keys storage in name node based on data received from shard node");
+			response = new ClusterResponse(ProtocolResponseType.SUCCESS, null, false);
+			break;
 		case SET_STRING:
 			logger.info("Set string operation from name node");
 			logger.info(requestBodyMap.toString());
-			QuickCache.getStorageManager().setValue(requestBodyMap.get("key"), requestBodyMap.get("value"));
+			this.storageManager.setValue(requestBodyMap.get("key"), requestBodyMap.get("value"), false);
 			response = new ClusterResponse(ProtocolResponseType.SUCCESS, null, false);
 			response = new ClusterResponse(
 					ProtocolResponseType.SUCCESS, "{\"requestId\":" + requestBodyMap.get("requestId") + ",\"key\":\""
@@ -94,7 +104,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
 		case GET_STRING:
 			logger.info("Get string operation from name node");
 			logger.info(requestBodyMap.toString());
-			value = QuickCache.getStorageManager().getValue(requestBodyMap.get("key"));
+			value = this.storageManager.getValue(requestBodyMap.get("key"));
 			if (value != null) {
 				value = "\"" + value + "\"";
 			}
@@ -106,7 +116,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
 		case GET_MAP_VALUE:
 			logger.info("Get map value operation from name node");
 			logger.info(requestBodyMap.toString());
-			value = QuickCache.getStorageManager().getMapValue(requestBodyMap.get("key"), requestBodyMap.get("field"));
+			value = this.storageManager.getMapValue(requestBodyMap.get("key"), requestBodyMap.get("field"));
 			if (value != null) {
 				value = "\"" + value + "\"";
 			}
@@ -118,7 +128,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
 		case GET_MAP_FIELDS:
 			logger.info("Get map fields operation from name node");
 			logger.info(requestBodyMap.toString());
-			Set<String> fields = QuickCache.getStorageManager().getMapFields(requestBodyMap.get("key"));
+			Set<String> fields = this.storageManager.getMapFields(requestBodyMap.get("key"));
 			try {
 				Map<String, String> resMap = new HashMap<>();
 				if (fields != null) {
@@ -139,7 +149,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
 		case GET_MAP_FIELD_VALUES:
 			logger.info("Get map field values operation from name node");
 			logger.info(requestBodyMap.toString());
-			valueMap = QuickCache.getStorageManager().getMapFieldValues(requestBodyMap.get("key"));
+			valueMap = this.storageManager.getMapFieldValues(requestBodyMap.get("key"));
 			try {
 				Map<String, String> resMap = new HashMap<>();
 				if (valueMap != null) {
@@ -157,8 +167,8 @@ public class DefaultRequestProcessor implements RequestProcessor {
 		case SET_MAP_VALUE:
 			logger.info("Set map value operation from name node");
 			logger.info(requestBodyMap.toString());
-			QuickCache.getStorageManager().setMapValue(requestBodyMap.get("key"), requestBodyMap.get("field"),
-					requestBodyMap.get("value"));
+			this.storageManager.setMapValue(requestBodyMap.get("key"), requestBodyMap.get("field"),
+					requestBodyMap.get("value"), false);
 			response = new ClusterResponse(ProtocolResponseType.SUCCESS,
 					"{\"requestId\":" + requestBodyMap.get("requestId") + ",\"key\":\"" + requestBodyMap.get("key")
 							+ "\",\"field\":\"" + requestBodyMap.get("field") + "\",\"value\":\""
@@ -169,7 +179,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
 		case GET_LIST_ITEMS:
 			logger.info("Get list items operation from name node");
 			logger.info(requestBodyMap.toString());
-			List<String> items = QuickCache.getStorageManager().getListItems(requestBodyMap.get("key"),
+			List<String> items = this.storageManager.getListItems(requestBodyMap.get("key"),
 					Boolean.parseBoolean(requestBodyMap.get("allItems")),
 					Integer.parseInt(requestBodyMap.get("offset")), Integer.parseInt(requestBodyMap.get("length")));
 			try {
@@ -190,7 +200,21 @@ public class DefaultRequestProcessor implements RequestProcessor {
 		case ADD_LIST_ITEM:
 			logger.info("Add list item operation from name node");
 			logger.info(requestBodyMap.toString());
-			QuickCache.getStorageManager().addListItem(requestBodyMap.get("key"), requestBodyMap.get("item"));
+			this.storageManager.addListItem(requestBodyMap.get("key"), requestBodyMap.get("item"), false);
+			try {
+				Map<String, String> resMap = new HashMap<>();
+				resMap.put("item", requestBodyMap.get("item"));
+				resMap.put("requestId", requestBodyMap.get("requestId"));
+				resMap.put("key", requestBodyMap.get("key"));
+				response = new ClusterResponse(ProtocolResponseType.SUCCESS, mapper.writeValueAsString(resMap), false);
+			} catch (JsonProcessingException exception) {
+				exception.printStackTrace();
+			}
+			break;
+		case REMOVE_LIST_ITEM:
+			logger.info("Remove list item operation from name node");
+			logger.info(requestBodyMap.toString());
+			this.storageManager.removeListItem(requestBodyMap.get("key"), Integer.parseInt(requestBodyMap.get("index")));
 			try {
 				Map<String, String> resMap = new HashMap<>();
 				resMap.put("item", requestBodyMap.get("item"));

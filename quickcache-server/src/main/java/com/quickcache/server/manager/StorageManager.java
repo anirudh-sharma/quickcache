@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quickcache.server.QuickCache;
 import com.quickcache.server.constants.AppConstants;
+import com.quickcache.server.constants.DataType;
 import com.quickcache.server.protocol.ClusterRequest;
 import com.quickcache.server.protocol.ClusterRequestResponseWrapper;
 import com.quickcache.server.protocol.ProtocolCommand;
@@ -47,6 +48,9 @@ public class StorageManager {
 	@Autowired
 	private ClusterManager clusterManager;
 
+	@Autowired
+	private PersistenceManager persistenceManager;
+
 	private Random randomServerIdGenerator;
 
 	public void setClusterManager(ClusterManager clusterManager) {
@@ -62,6 +66,7 @@ public class StorageManager {
 		}
 		this.keyMap = new ConcurrentHashMap<String, Integer>();
 		this.randomServerIdGenerator = new Random();
+
 	}
 
 	// String Operations
@@ -82,9 +87,12 @@ public class StorageManager {
 		}
 	}
 
-	public void setValue(String key, String value) {
-		if (isShardNode) {
+	public void setValue(String key, String value, boolean loadPersistenceOperation) {
+		if (isShardNode || loadPersistenceOperation) {
 			storageUnits[getStorageUnitCount(key)].setValue(key, value);
+			if (loadPersistenceOperation) {
+				this.keyMap.put(key, this.serverId);
+			}
 		} else {
 			int serverId = getServerId(key);
 			if (this.serverId == serverId) {
@@ -96,6 +104,9 @@ public class StorageManager {
 				getResponseSynchronously(requestId, clusterRequest).get("value");
 				return;
 			}
+		}
+		if (!loadPersistenceOperation) {
+			this.persistenceManager.persistData(key, null, value, DataType.STRING, this.serverId);
 		}
 	}
 
@@ -173,9 +184,12 @@ public class StorageManager {
 		}
 	}
 
-	public void setMapValue(String key, String field, String value) {
-		if (isShardNode) {
+	public void setMapValue(String key, String field, String value, boolean loadPersistenceOperation) {
+		if (isShardNode || loadPersistenceOperation) {
 			storageUnits[getStorageUnitCount(key)].setMapValue(key, field, value);
+			if (loadPersistenceOperation) {
+				this.keyMap.put(key, this.serverId);
+			}
 		} else {
 			int serverId = getServerId(key);
 			if (this.serverId == serverId) {
@@ -188,6 +202,9 @@ public class StorageManager {
 				getResponseSynchronously(requestId, clusterRequest).get("value");
 				return;
 			}
+		}
+		if (!loadPersistenceOperation) {
+			this.persistenceManager.persistData(key, field, value, DataType.MAP, this.serverId);
 		}
 	}
 
@@ -208,9 +225,9 @@ public class StorageManager {
 								+ ", \"offset\": " + offset + ",\"length\":" + length + "}");
 
 				String items = getResponseSynchronously(requestId, clusterRequest).get("items");
-				
+
 				try {
-					if(items != null) {
+					if (items != null) {
 						ObjectMapper mapper = new ObjectMapper();
 						TypeReference<ArrayList<String>> typeRef = new TypeReference<ArrayList<String>>() {
 						};
@@ -225,9 +242,12 @@ public class StorageManager {
 
 	}
 
-	public void addListItem(String key, String item) {
-		if (isShardNode) {
+	public void addListItem(String key, String item, boolean loadPersistenceOperation) {
+		if (isShardNode || loadPersistenceOperation) {
 			storageUnits[getStorageUnitCount(key)].addListItem(key, item);
+			if (loadPersistenceOperation) {
+				this.keyMap.put(key, this.serverId);
+			}
 		} else {
 			int serverId = getServerId(key);
 			if (this.serverId == serverId) {
@@ -235,16 +255,32 @@ public class StorageManager {
 			} else {
 				long requestId = QuickCache.generateRequestId();
 				ClusterRequest clusterRequest = new ClusterRequest(this.serverId, serverId,
-						ProtocolCommand.ADD_LIST_ITEM, "{\"requestId\":" + requestId + ",\"key\":\"" + key
-								+ "\",\"item\":\"" + item + "\"}");
+						ProtocolCommand.ADD_LIST_ITEM,
+						"{\"requestId\":" + requestId + ",\"key\":\"" + key + "\",\"item\":\"" + item + "\"}");
 				getResponseSynchronously(requestId, clusterRequest).get("value");
 				return;
 			}
 		}
-		
+		if (!loadPersistenceOperation) {
+			this.persistenceManager.persistData(key, null, item, DataType.LIST, this.serverId);
+		}
 	}
 
 	public String removeListItem(String key, int index) {
+		if (isShardNode) {
+			return storageUnits[getStorageUnitCount(key)].removeListItem(key, index);
+		} else {
+			int serverId = getServerId(key);
+			if (this.serverId == serverId) {
+				storageUnits[getStorageUnitCount(key)].removeListItem(key, index);
+			} else {
+				long requestId = QuickCache.generateRequestId();
+				ClusterRequest clusterRequest = new ClusterRequest(this.serverId, serverId,
+						ProtocolCommand.REMOVE_LIST_ITEM,
+						"{\"requestId\":" + requestId + ",\"key\":\"" + key + "\",\"index\":" + index + "}");
+				return getResponseSynchronously(requestId, clusterRequest).get("value");
+			}
+		}
 		return storageUnits[getStorageUnitCount(key)].removeListItem(key, index);
 	}
 
@@ -255,6 +291,10 @@ public class StorageManager {
 		} else {
 			return (concurrencyLevel - 1);
 		}
+	}
+
+	public int getCurrentServerId() {
+		return this.serverId;
 	}
 
 	private Integer getServerId(String key) {
@@ -281,11 +321,12 @@ public class StorageManager {
 		QuickCache.putClusterRequest(clusterRequestResponseWrapper);
 		this.clusterManager.addRequest(clusterRequest);
 		try {
-			countDownLatch.await(500, TimeUnit.MILLISECONDS);
+			countDownLatch.await(1000, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 		QuickCache.removeClusterRequest(requestId);
 		return clusterRequestResponseWrapper.getResponseBody();
 	}
+
 }
