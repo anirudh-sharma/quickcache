@@ -72,6 +72,7 @@ public class PersistenceManager {
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
+				logger.info("Persistence thread started");
 				while (true) {
 					try {
 						StorageChunk chunk = storageChunkPersistenceQueue.poll(2, TimeUnit.HOURS);
@@ -81,7 +82,7 @@ public class PersistenceManager {
 					}
 				}
 			}
-		}).start();
+		}, "PERSISTENCE-THREAD").start();
 	}
 
 	public void loadData() {
